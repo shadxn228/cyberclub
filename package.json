@@ -1,0 +1,24 @@
+{
+  "name": "cyberclub",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shadxn228/cyberclub.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shadxn228/cyberclub/issues"
+  },
+  "homepage": "https://github.com/shadxn228/cyberclub#readme",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.56.0",
+    "nodemon": "^2.0.15"
+  }
+}
