@@ -19,6 +19,7 @@
   "homepage": "https://github.com/shadxn228/cyberclub#readme",
   "dependencies": {
     "dotenv": "^16.0.0",
+    "mongoose": "^6.3.4",
     "node-telegram-bot-api": "^0.56.0",
     "nodemon": "^2.0.15"
   }
