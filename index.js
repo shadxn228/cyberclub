@@ -31,16 +31,78 @@ const films = {
         { text: "Крутые яйца-2", callback_data: "5" },
         { text: "Ботан и Супербаба", callback_data: "6" },
       ],
-      [{ text: "Назад", callback_data: "7" }],
+      [{ text: "« Назад", callback_data: "7" }],
     ],
   }),
 };
 
-const ras = {
+const today = new Date();
+const timeOpt = { month: 'long', day: 'numeric' };
+const russianDate = today.toLocaleDateString('ru-RU', timeOpt);
+
+const tomorrow = new Date(today.getTime());
+tomorrow.setDate(tomorrow.getDate() +  1);
+const afterTomorrowRussianDate = tomorrow.toLocaleDateString('ru-RU', timeOpt);
+
+const afterTomorrow = new Date(today.getTime());
+tomorrow.setDate(afterTomorrow.getDate() +  2);
+const afterTom = tomorrow.toLocaleDateString('ru-RU', timeOpt);
+
+const backBtn = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [
+      [{ text: "« Назад", callback_data: "9"}],
+    ],
+  }),
+};
+
+const buyTicket = {
   reply_markup: JSON.stringify({
     inline_keyboard: [
       [{ text: "Купить билет", callback_data: "8" }],
-      [{ text: "Назад", callback_data: "9" }],
+      [{ text: "« Назад", callback_data: "9" }],
+    ],
+  }),
+};
+
+const ticketBuka = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [
+      [{ text: "Купить билет", callback_data: "ticketBuka" }],
+      [{ text: "« Назад", callback_data: "9" }],
+    ],
+  }),
+};
+
+const schedule2 = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [
+      [{ text: `${russianDate}`, callback_data: '678'}, { text: `${afterTomorrowRussianDate}`, callback_data: '678'}, { text: `${afterTom}`, callback_data: '678'}],
+      [{ text: '11:05 - 260 ₽', callback_data: '678'}, { text: '11:05 - 260 ₽', callback_data: 'morning'}, { text: '11:05 - 260 ₽', callback_data: '678'},],
+      [{ text: '14:15 - 320 ₽', callback_data: '678'}, { text: '14:15 - 320 ₽', callback_data: 'day'}, { text: '14:15 - 320 ₽', callback_data: '678'},],
+      [{ text: '18:45 - 320 ₽', callback_data: '678'}, { text: '18:45 - 320 ₽', callback_data: 'evening'}, { text: '18:45 - 320 ₽', callback_data: '678'},],
+      [{ text: '23:45 - 360 ₽', callback_data: '678'}, { text: '23:45 - 360 ₽', callback_data: 'night'}, { text: '23:45 - 360 ₽', callback_data: '678'},],
+      [{ text: "« Назад", callback_data: "1" }],
+    ],
+  }),
+};
+
+const sched2 = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [
+      [{ text: '11:05 - 260 ₽', callback_data: 'morning'}],
+      [{ text: '14:15 - 320 ₽', callback_data: 'day'}],
+      [{ text: '18:45 - 320 ₽', callback_data: 'evening'}],
+      [{ text: '23:45 - 360 ₽', callback_data: 'night'}],
+      [{ text: "« Назад", callback_data: "2" }],
+    ],
+  }),
+};
+
+const confirmkeyboard = {
+  reply_markup: JSON.stringify({
+    inline_keyboard: [
+      [{ text: 'Отменить', callback_data: 'cancel'}, { text: 'Пополнить', callback_data: 'confirm'}],
     ],
   }),
 };
@@ -52,32 +114,32 @@ const trail = {
 };
 const trail1 = {
   reply_markup: JSON.stringify({
-    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "10" }]],
+    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "12" }]],
   }),
 };
 const trail2 = {
   reply_markup: JSON.stringify({
-    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "10" }]],
+    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "13" }]],
   }),
 };
 const trail3 = {
   reply_markup: JSON.stringify({
-    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "10" }]],
+    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "14" }]],
   }),
 };
 const trail4 = {
   reply_markup: JSON.stringify({
-    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "10" }]],
+    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "15" }]],
   }),
 };
 const trail5 = {
   reply_markup: JSON.stringify({
-    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "10" }]],
+    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "16" }]],
   }),
 };
 const trail6 = {
   reply_markup: JSON.stringify({
-    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "10" }]],
+    inline_keyboard: [[{ text: "Смотреть трейлер", callback_data: "17" }]],
   }),
 };
 const bal = {
@@ -124,25 +186,30 @@ const start = async () => {
       });
     }
     user = await Users.findOne({ id: `${userId}` });
-    if (isNowDeposit == true) {
-      if (!(parseInt(text) != NaN && parseInt(text) > 0)) {
-        return bot.sendMessage(chatid, 'Введите число:')
-      }
-      isNowDeposit = false;
-      await bot.sendMessage(chatid, `Баланс успешно пополнен. Доступно ${user.money + parseInt(text)}`)
-      return Users.updateOne(
-        {id: `${userId}`},
-        {
-            $set: {
-                money: user.money + parseInt(text),
-            }
-        }
-    )
+    if (!user) {
+      await Users.insertOne({
+        name: `${userName}`,
+        id: `${userId}`,
+        money: 0,
+        phone: '',
+      });
     }
+    if (isNowDeposit == true) {
+      let amount = parseInt(text);
+      if (isNaN(amount) || amount <= 0 || user.money + amount > 5000) {
+         return bot.sendMessage(chatid, `Введите число, не больше 5000 ₽. Лимит баланса 5000 ₽.
+
+Ваш баланс: ${user.money} ₽`);
+      }
+      isNowDeposit = false
+      let newBalance = user.money + amount;
+      await bot.sendMessage(chatid, `Баланс успешно пополнен. \nДоступно: ${newBalance} ₽`);
+      return Users.updateOne({id: `${userId}`}, {$set: {money: newBalance}});
+      }
     if (text === "/start") {
       return bot.sendMessage(
         chatid,
-        `Привет, ${msg.from.first_name}!!\nЭто бот для бронирования мест в кинотеаре OneCinema.`,
+        `Привет ${msg.from.first_name}! Здесь можно удобно и быстро приобрести билеты в кинотеатры прямо из твоего любимого мессенджера.`,
         main
       );
     }
@@ -153,10 +220,9 @@ const start = async () => {
       return bot.sendMessage(
         chatid,
         `Ваш профиль:
-ID: ${msg.from.id}
 Никнейм: ${msg.chat.username}
 Имя: ${msg.from.first_name}
-Баланс: ${user.money}`, bal
+Баланс: ${user.money} ₽`, bal
       );
     }
     if (text === "Назад") {
@@ -175,7 +241,10 @@ ID: ${msg.from.id}
     user = await Users.findOne({id: `${msg.from.id}`})
     if (data === '11') {
       isNowDeposit = true;
-      return bot.sendMessage(chatid, 'Введите сумму для пополнения:')
+      await bot.sendMessage(chatid, 'Введите сумму для пополнения:')
+    }
+    if (data === "morning") {
+      return bot.sendMessage(chatid, "Билет успешно куплен.")
     }
     if (data === "1") {
       await bot.sendPhoto(chatid, "img/anch.jpg", trail);
@@ -189,7 +258,7 @@ ID: ${msg.from.id}
 Рейтинг: 6.9 ★ (Кинопоиск)
 Премьера: 11 февраля 2022г.
 В ролях: Том Холланд, Марк Уолберг, София Тейлор Али, Антонио Бандерас, Тати Габриэль`,
-        ras
+        buyTicket
       );
     }
     if (data === "2") {
@@ -205,7 +274,7 @@ ID: ${msg.from.id}
 Рейтинг: 6.9 ★ (Кинопоиск)
 Премьера: 28 апреля 2021г.
 В ролях: —`,
-        ras
+        ticketBuka
       );
     }
     if (data === "3") {
@@ -219,7 +288,7 @@ ID: ${msg.from.id}
 Жанр: боевик, триллер
 Рейтинг: 6.9 ★ (Кинопоиск)
 Премьера: 12 мая 2022г.
-В ролях: Лиам Нисон, Моника Беллуччи, Гай Пирс, Рэй Стивенсон, Луис Мэндилор`
+В ролях: Лиам Нисон, Моника Беллуччи, Гай Пирс, Рэй Стивенсон, Луис Мэндилор`, buyTicket
       );
     }
     if (data === "4") {
@@ -233,7 +302,7 @@ ID: ${msg.from.id}
 Жанр: триллер
 Рейтинг: 6.9 ★ (Кинопоиск)
 Премьера: 21 апреля 2021г.
-В ролях: Нико Тавадзе, Юлия Снигирь, Виктория Толстоганова, Даниил Спиваковский, Евгений Ткачук`
+В ролях: Нико Тавадзе, Юлия Снигирь, Виктория Толстоганова, Даниил Спиваковский, Евгений Ткачук`, buyTicket
       );
     }
     if (data === "5") {
@@ -248,7 +317,7 @@ ID: ${msg.from.id}
 Продолжительность: 1 ч. 29 мин.
 Рейтинг: 6.9 ★ (Кинопоиск)
 Премьера: 19 мая 2022г.
-В ролях: Нико Тавадзе, Юлия Снигирь, Виктория Толстоганова, Даниил Спиваковский, Евгений Ткачук`
+В ролях: Нико Тавадзе, Юлия Снигирь, Виктория Толстоганова, Даниил Спиваковский, Евгений Ткачук`, buyTicket
       );
     }
     if (data === "6") {
@@ -262,25 +331,55 @@ ID: ${msg.from.id}
 Жанр: комедия
 Рейтинг: 6.9 ★ (Кинопоиск)
 Премьера: 12 мая 2022г.
-В ролях: София Каштанова, Григорий Калинин`
+В ролях: София Каштанова, Григорий Калинин`, buyTicket
       );
     }
     if (data === "7") {
-      await bot.sendMessage(chatid, "Вы находитесь в главном меню", main);
+      await bot.sendMessage(chatid, "Вы находитесь на главном меню:", main);
+    }
+    if (data === "8") {
+      await bot.sendMessage(chatid, "Расписание:", schedule2);
     }
     if (data === "9") {
-      return bot.sendMessage(chatid, "Фильмы:", films);
+      await bot.sendMessage(chatid, "Фильмы:", films);
+    }
+    if (data === "ticketBuka") {
+      return bot.sendMessage(chatid, "Выберите формат:", sched2)
     }
     if (data === "10") {
       return bot.sendMessage(
         chatid,
-        (URL = "https://www.youtube.com/watch?v=oPDcRJVd3dU&t=1s")
+        (URL = "https://www.youtube.com/watch?v=oPDcRJVd3dU&t=1s"), backBtn
       );
     }
-    if (data === "10") {
+    if (data === "12") {
       return bot.sendMessage(
         chatid,
-        (URL = "https://www.youtube.com/watch?v=oPDcRJVd3dU&t=1s")
+        (URL = "https://www.youtube.com/watch?v=28bBU7DPDPI"), backBtn
+      );
+    }
+    if (data === "13") {
+      return bot.sendMessage(
+        chatid,
+        (URL = "https://www.youtube.com/watch?v=q-bNkLPjnFU"), backBtn
+      );
+    }
+    if (data === "14") {
+      return bot.sendMessage(
+        chatid,
+        (URL = "https://www.youtube.com/watch?v=jF3YmtXyPPc"), backBtn
+      );
+    }
+    if (data === "15") {
+      return bot.sendMessage(
+        chatid,
+        (URL = "https://www.youtube.com/watch?v=FT-mSyyWejY"), backBtn
+      );
+    }
+    if (data === "16") {
+      return bot.sendMessage(
+        chatid,
+        (URL = "https://www.youtube.com/watch?v=dtCDDoGAEN8"), backBtn
       );
     }
   });
